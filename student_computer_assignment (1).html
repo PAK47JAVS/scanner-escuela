@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignación de Computadoras - Aula de Informática</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .title {
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .scan-section {
+            margin-bottom: 30px;
+        }
+
+        .scan-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            border: 3px solid #e2e8f0;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .scan-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .assignment-result {
+            margin: 30px 0;
+            padding: 25px;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .assignment-success {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .assignment-error {
+            background: linear-gradient(45deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .mesa-number {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .student-name {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .table-layout {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+
+        .table-item {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .table-occupied {
+            background: linear-gradient(45deg, #fc8181, #f687b3);
+            color: white;
+        }
+
+        .table-available {
+            background: linear-gradient(45deg, #68d391, #4fd1c7);
+            color: white;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .student-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .student-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .student-item:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .title {
+                font-size: 1.5rem;
+            }
+            
+            .mesa-number {
+                font-size: 3rem;
+            }
+            
+            .table-layout {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @keyframes scanAnimation {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        #cameraContainer {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .camera-permission {
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🏫 Aula de Informática</h1>
+        <p style="margin-bottom: 20px; color: #666;">Escanea tu carnet estudiantil para obtener tu asignación</p>
+        
+        <div class="scan-section">
+            <input type="text" id="studentId" class="scan-input" placeholder="Escanea o ingresa el ID del carnet" autofocus>
+            <br>
+            <button onclick="toggleCamera()" class="btn" id="cameraBtn">📷 Escanear Carnet</button>
+            <button onclick="assignTable()" class="btn">Asignar Mesa</button>
+            <button onclick="showStatus()" class="btn">Ver Estado</button>
+            
+            <!-- Contenedor de la cámara -->
+            <div id="cameraContainer" style="display: none; margin: 20px 0;">
+                <div style="position: relative; max-width: 400px; margin: 0 auto;">
+                    <video id="cameraVideo" style="width: 100%; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);"></video>
+                    <div id="scanLine" style="position: absolute; top: 50%; left: 10%; right: 10%; height: 2px; background: #ff0000; animation: scanAnimation 2s infinite; transform: translateY(-50%);"></div>
+                </div>
+                <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">Coloca el código de barras del carnet frente a la cámara</p>
+                <button onclick="stopCamera()" class="btn" style="background: #f56565; margin-top: 10px;">Detener Cámara</button>
+            </div>
+        </div>
+
+        <div id="assignmentResult" class="assignment-result">
+            <div id="studentName" class="student-name"></div>
+            <div>Ve a la</div>
+            <div id="mesaNumber" class="mesa-number"></div>
+            <div>¡Computadora asignada exitosamente!</div>
+        </div>
+
+        <div id="errorResult" class="assignment-result assignment-error" style="display: none;">
+            <div id="errorMessage"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div id="studentsCount" class="stat-number">0</div>
+                <div class="stat-label">Estudiantes asignados</div>
+            </div>
+            <div class="stat-card">
+                <div id="availableCount" class="stat-number">25</div>
+                <div class="stat-label">Computadoras disponibles</div>
+            </div>
+        </div>
+
+        <div class="table-layout" id="tableLayout" style="display: none;">
+            <!-- Las mesas se generarán dinámicamente -->
+        </div>
+
+        <div class="student-list" id="studentList" style="display: none;">
+            <h3>Estudiantes Asignados:</h3>
+            <div id="assignedStudents"></div>
+        </div>
+
+        <div class="controls">
+            <button onclick="resetAssignments()" class="btn" style="background: linear-gradient(45deg, #f56565, #e53e3e);">Reiniciar Asignaciones</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script>
+        // Configuración del aula
+        const TOTAL_COMPUTERS = 25;
+        const TABLES = {
+            1: { computers: [1, 2, 3, 4], students: [] },
+            2: { computers: [5, 6, 7, 8], students: [] },
+            3: { computers: [9, 10, 11, 12, 13], students: [] },
+            4: { computers: [14, 15, 16, 17, 18], students: [] },
+            5: { computers: [19, 20, 21, 22], students: [] },
+            6: { computers: [23, 24, 25], students: [] }
+        };
+
+        // Estado de la aplicación
+        let assignedStudents = {};
+        let availableComputers = Array.from({length: TOTAL_COMPUTERS}, (_, i) => i + 1);
+        let studentsDatabase = {};
+        let cameraStream = null;
+        let isScanning = false;
+
+        // Simulación de base de datos de estudiantes
+        function generateStudentDatabase() {
+            const nombres = ['Ana García', 'Carlos López', 'María Rodríguez', 'Juan Pérez', 'Sofia Martín', 
+                           'Diego Silva', 'Elena Ruiz', 'Pablo Torres', 'Lucia Morales', 'Andrés Castro',
+                           'Valeria Jiménez', 'Miguel Vargas', 'Carmen Flores', 'Roberto Herrera', 'Isabel Vega'];
+            
+            for (let i = 1; i <= 50; i++) {
+                const randomName = nombres[Math.floor(Math.random() * nombres.length)];
+                studentsDatabase[`EST${i.toString().padStart(3, '0')}`] = {
+                    name: `${randomName} ${i}`,
+                    id: `EST${i.toString().padStart(3, '0')}`
+                };
+            }
+        }
+
+        function assignTable() {
+            const studentIdInput = document.getElementById('studentId');
+            const studentId = studentIdInput.value.trim().toUpperCase();
+            
+            if (!studentId) {
+                showError('Por favor, ingresa un ID de estudiante válido');
+                return;
+            }
+
+            // Verificar si el estudiante ya tiene una asignación
+            if (assignedStudents[studentId]) {
+                const existingAssignment = assignedStudents[studentId];
+                showAssignment(existingAssignment.name, existingAssignment.table, true);
+                studentIdInput.value = '';
+                return;
+            }
+
+            // Verificar si el estudiante existe en la base de datos
+            if (!studentsDatabase[studentId]) {
+                showError('ID de estudiante no encontrado en la base de datos');
+                studentIdInput.value = '';
+                return;
+            }
+
+            // Verificar si hay computadoras disponibles
+            if (availableComputers.length === 0) {
+                showError('No hay computadoras disponibles');
+                studentIdInput.value = '';
+                return;
+            }
+
+            // Asignar mesa basada en disponibilidad
+            let assignedTable = null;
+            for (let tableNum = 1; tableNum <= 6; tableNum++) {
+                const table = TABLES[tableNum];
+                const availableInTable = table.computers.filter(comp => 
+                    availableComputers.includes(comp)
+                ).length;
+                
+                if (availableInTable > 0) {
+                    assignedTable = tableNum;
+                    break;
+                }
+            }
+
+            if (assignedTable) {
+                // Encontrar una computadora disponible en la mesa asignada
+                const availableInAssignedTable = TABLES[assignedTable].computers.filter(comp => 
+                    availableComputers.includes(comp)
+                );
+                
+                const assignedComputer = availableInAssignedTable[0];
+                
+                // Registrar la asignación
+                const studentData = studentsDatabase[studentId];
+                assignedStudents[studentId] = {
+                    name: studentData.name,
+                    table: assignedTable,
+                    computer: assignedComputer,
+                    timestamp: new Date().toLocaleString()
+                };
+
+                // Agregar estudiante a la mesa
+                TABLES[assignedTable].students.push(studentId);
+                
+                // Remover computadora de disponibles
+                availableComputers = availableComputers.filter(comp => comp !== assignedComputer);
+
+                showAssignment(studentData.name, assignedTable, false);
+                updateStats();
+                studentIdInput.value = '';
+                studentIdInput.focus();
+            } else {
+                showError('Error en la asignación. Intenta nuevamente.');
+            }
+        }
+
+        function showAssignment(studentName, tableNumber, isExisting = false) {
+            const resultDiv = document.getElementById('assignmentResult');
+            const errorDiv = document.getElementById('errorResult');
+            const nameDiv = document.getElementById('studentName');
+            const mesaDiv = document.getElementById('mesaNumber');
+
+            errorDiv.style.display = 'none';
+            
+            nameDiv.textContent = studentName;
+            mesaDiv.textContent = `MESA ${tableNumber}`;
+            
+            if (isExisting) {
+                resultDiv.innerHTML = `
+                    <div class="student-name">${studentName}</div>
+                    <div>Ya tienes asignada la</div>
+                    <div class="mesa-number">MESA ${tableNumber}</div>
+                    <div>¡Dirígete a tu computadora!</div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="student-name">${studentName}</div>
+                    <div>Ve a la</div>
+                    <div class="mesa-number">MESA ${tableNumber}</div>
+                    <div>¡Computadora asignada exitosamente!</div>
+                `;
+            }
+            
+            resultDiv.className = 'assignment-result assignment-success';
+            resultDiv.style.display = 'block';
+
+            // Ocultar resultado después de 5 segundos
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            const resultDiv = document.getElementById('assignmentResult');
+            const errorDiv = document.getElementById('errorResult');
+            const errorMessage = document.getElementById('errorMessage');
+
+            resultDiv.style.display = 'none';
+            errorMessage.textContent = message;
+            errorDiv.style.display = 'block';
+
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function updateStats() {
+            document.getElementById('studentsCount').textContent = Object.keys(assignedStudents).length;
+            document.getElementById('availableCount').textContent = availableComputers.length;
+        }
+
+        function showStatus() {
+            const tableLayout = document.getElementById('tableLayout');
+            const studentList = document.getElementById('studentList');
+            
+            // Toggle visibility
+            const isVisible = tableLayout.style.display !== 'none';
+            tableLayout.style.display = isVisible ? 'none' : 'grid';
+            studentList.style.display = isVisible ? 'none' : 'block';
+
+            if (!isVisible) {
+                updateTableLayout();
+                updateStudentList();
+            }
+        }
+
+        function updateTableLayout() {
+            const tableLayout = document.getElementById('tableLayout');
+            tableLayout.innerHTML = '';
+
+            for (let tableNum = 1; tableNum <= 6; tableNum++) {
+                const table = TABLES[tableNum];
+                const occupiedCount = table.students.length;
+                const totalComputers = table.computers.length;
+                
+                const tableDiv = document.createElement('div');
+                tableDiv.className = occupiedCount > 0 ? 'table-item table-occupied' : 'table-item table-available';
+                tableDiv.innerHTML = `
+                    <div>Mesa ${tableNum}</div>
+                    <div>${occupiedCount}/${totalComputers}</div>
+                `;
+                tableLayout.appendChild(tableDiv);
+            }
+        }
+
+        function updateStudentList() {
+            const assignedDiv = document.getElementById('assignedStudents');
+            assignedDiv.innerHTML = '';
+
+            if (Object.keys(assignedStudents).length === 0) {
+                assignedDiv.innerHTML = '<p style="text-align: center; color: #666;">No hay estudiantes asignados</p>';
+                return;
+            }
+
+            for (const [studentId, data] of Object.entries(assignedStudents)) {
+                const studentDiv = document.createElement('div');
+                studentDiv.className = 'student-item';
+                studentDiv.innerHTML = `
+                    <span><strong>${data.name}</strong> (${studentId})</span>
+                    <span>Mesa ${data.table} - PC ${data.computer}</span>
+                `;
+                assignedDiv.appendChild(studentDiv);
+            }
+        }
+
+        function resetAssignments() {
+            if (confirm('¿Estás seguro de que quieres reiniciar todas las asignaciones?')) {
+                // Limpiar memoria de asignaciones
+                assignedStudents = {};
+                availableComputers = Array.from({length: TOTAL_COMPUTERS}, (_, i) => i + 1);
+                
+                // Limpiar estudiantes de las mesas
+                for (let tableNum = 1; tableNum <= 6; tableNum++) {
+                    TABLES[tableNum].students = [];
+                }
+
+                // Limpiar interfaz
+                updateStats();
+                document.getElementById('assignmentResult').style.display = 'none';
+                document.getElementById('errorResult').style.display = 'none';
+                document.getElementById('tableLayout').style.display = 'none';
+                document.getElementById('studentList').style.display = 'none';
+                
+                // Limpiar campo de entrada
+                document.getElementById('studentId').value = '';
+                
+                // Enfocar campo de entrada
+                document.getElementById('studentId').focus();
+                
+                // Mensaje de confirmación
+                showScanSuccess('🔄 Memoria limpiada - Sistema reiniciado', 3000);
+            }
+        }
+
+        // Manejar enter en el input
+        document.getElementById('studentId').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                assignTable();
+            }
+        });
+
+        // Inicializar la aplicación
+        generateStudentDatabase();
+        updateStats();
+
+        // Funciones de cámara y escaneo
+        async function toggleCamera() {
+            const cameraContainer = document.getElementById('cameraContainer');
+            const cameraBtn = document.getElementById('cameraBtn');
+            
+            if (cameraContainer.style.display === 'none' || cameraContainer.style.display === '') {
+                await startCamera();
+            } else {
+                stopCamera();
+            }
+        }
+
+        async function startCamera() {
+            try {
+                const cameraContainer = document.getElementById('cameraContainer');
+                const cameraBtn = document.getElementById('cameraBtn');
+                const video = document.getElementById('cameraVideo');
+                
+                // Solicitar permisos de cámara
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment', // Cámara trasera preferida
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                });
+                
+                video.srcObject = cameraStream;
+                video.play();
+                
+                cameraContainer.style.display = 'block';
+                cameraBtn.textContent = '❌ Detener Cámara';
+                cameraBtn.style.background = 'linear-gradient(45deg, #f56565, #e53e3e)';
+                
+                // Inicializar QuaggaJS para escaneo
+                initializeScanner();
+                
+            } catch (error) {
+                console.error('Error al acceder a la cámara:', error);
+                let errorMessage = 'No se pudo acceder a la cámara. ';
+                
+                if (error.name === 'NotAllowedError') {
+                    errorMessage += 'Por favor, permite el acceso a la cámara en la configuración del navegador.';
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage += 'No se encontró ninguna cámara en el dispositivo.';
+                } else {
+                    errorMessage += 'Verifica que tu dispositivo tenga cámara y esté funcionando correctamente.';
+                }
+                
+                showCameraError(errorMessage);
+            }
+        }
+
+        function stopCamera() {
+            const cameraContainer = document.getElementById('cameraContainer');
+            const cameraBtn = document.getElementById('cameraBtn');
+            
+            // Detener QuaggaJS
+            if (isScanning) {
+                Quagga.stop();
+                isScanning = false;
+            }
+            
+            // Detener stream de video
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            
+            cameraContainer.style.display = 'none';
+            cameraBtn.textContent = '📷 Escanear Carnet';
+            cameraBtn.style.background = 'linear-gradient(45deg, #667eea, #764ba2)';
+        }
+
+        function initializeScanner() {
+            if (isScanning) return;
+            
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#cameraVideo'),
+                    constraints: {
+                        width: 640,
+                        height: 480,
+                        facingMode: "environment"
+                    }
+                },
+                decoder: {
+                    readers: [
+                        "code_128_reader",
+                        "ean_reader",
+                        "ean_8_reader",
+                        "code_39_reader",
+                        "code_39_vin_reader",
+                        "codabar_reader",
+                        "upc_reader",
+                        "upc_e_reader",
+                        "i2of5_reader"
+                    ]
+                },
+                locate: true,
+                locator: {
+                    patchSize: "medium",
+                    halfSample: true
+                }
+            }, function(err) {
+                if (err) {
+                    console.error('Error inicializando scanner:', err);
+                    showError('Error al inicializar el escáner de códigos');
+                    return;
+                }
+                
+                console.log("Scanner inicializado correctamente");
+                Quagga.start();
+                isScanning = true;
+                
+                // Manejar detección de códigos
+                Quagga.onDetected(onBarcodeDetected);
+            });
+        }
+
+        function onBarcodeDetected(result) {
+            const code = result.codeResult.code;
+            console.log('Código detectado:', code);
+            
+            // Detener cámara inmediatamente
+            stopCamera();
+            
+            // Procesar asignación directamente desde el escaneo
+            processScanAssignment(code);
+        }
+
+        function showScanSuccess(message, duration = 2000) {
+            // Crear notificación de escaneo exitoso
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(45deg, #48bb78, #38a169);
+                color: white;
+                padding: 30px 40px;
+                border-radius: 15px;
+                z-index: 1000;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+                text-align: center;
+                font-size: 1.5rem;
+                font-weight: bold;
+                min-width: 300px;
+                animation: notificationPulse 0.5s ease-out;
+            `;
+            
+            notification.innerHTML = message;
+            document.body.appendChild(notification);
+            
+            // Añadir estilo de animación si no existe
+            if (!document.getElementById('notificationStyle')) {
+                const style = document.createElement('style');
+                style.id = 'notificationStyle';
+                style.textContent = `
+                    @keyframes notificationPulse {
+                        0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+                        50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.9; }
+                        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, duration);
+        }
+
+        function showBigAssignment(studentName, tableNumber, isExisting = false) {
+            // Crear overlay de pantalla completa
+            const overlay = document.createElement('div');
+            overlay.id = 'assignmentOverlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                z-index: 2000;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                color: white;
+                text-align: center;
+                animation: overlayFadeIn 0.3s ease-out;
+            `;
+
+            const assignmentText = isExisting ? 'YA TIENES ASIGNADA LA' : 'VE A LA';
+            const statusText = isExisting ? '¡Dirígete a tu computadora!' : '¡Computadora asignada exitosamente!';
+            
+            overlay.innerHTML = `
+                <div style="animation: assignmentBounce 0.6s ease-out;">
+                    <div style="font-size: 2rem; margin-bottom: 20px; opacity: 0.9;">${studentName}</div>
+                    <div style="font-size: 1.5rem; margin-bottom: 30px;">${assignmentText}</div>
+                    <div style="
+                        font-size: 8rem; 
+                        font-weight: 900; 
+                        margin: 40px 0; 
+                        text-shadow: 0 0 30px rgba(255,255,255,0.5);
+                        background: linear-gradient(45deg, #667eea, #764ba2);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                    ">MESA ${tableNumber}</div>
+                    <div style="font-size: 1.8rem; margin-bottom: 40px;">${statusText}</div>
+                    <div style="font-size: 1rem; opacity: 0.7;">Esta pantalla se cerrará automáticamente...</div>
+                </div>
+            `;
+
+            // Añadir estilos de animación
+            if (!document.getElementById('overlayStyles')) {
+                const style = document.createElement('style');
+                style.id = 'overlayStyles';
+                style.textContent = `
+                    @keyframes overlayFadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes assignmentBounce {
+                        0% { transform: scale(0.5); opacity: 0; }
+                        60% { transform: scale(1.1); opacity: 0.9; }
+                        100% { transform: scale(1); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            document.body.appendChild(overlay);
+
+            // Cerrar automáticamente después de 6 segundos
+            setTimeout(() => {
+                if (document.body.contains(overlay)) {
+                    overlay.style.animation = 'overlayFadeIn 0.3s ease-out reverse';
+                    setTimeout(() => {
+                        if (document.body.contains(overlay)) {
+                            document.body.removeChild(overlay);
+                        }
+                    }, 300);
+                }
+            }, 6000);
+
+            // Permitir cerrar con clic o toque
+            overlay.addEventListener('click', () => {
+                if (document.body.contains(overlay)) {
+                    overlay.style.animation = 'overlayFadeIn 0.3s ease-out reverse';
+                    setTimeout(() => {
+                        if (document.body.contains(overlay)) {
+                            document.body.removeChild(overlay);
+                        }
+                    }, 300);
+                }
+            });
+        }
+
+        function processScanAssignment(studentId) {
+            const cleanId = studentId.trim().toUpperCase();
+            
+            // Actualizar campo de entrada
+            document.getElementById('studentId').value = cleanId;
+            
+            if (!cleanId) {
+                showError('Código no válido escaneado');
+                return;
+            }
+
+            // Verificar si el estudiante ya tiene una asignación (memoria temporal)
+            if (assignedStudents[cleanId]) {
+                const existingAssignment = assignedStudents[cleanId];
+                showBigAssignment(existingAssignment.name, existingAssignment.table, true);
+                // También mostrar en el resultado normal
+                setTimeout(() => {
+                    showAssignment(existingAssignment.name, existingAssignment.table, true);
+                }, 6500);
+                return;
+            }
+
+            // Verificar si el estudiante existe en la base de datos
+            if (!studentsDatabase[cleanId]) {
+                showError('ID de estudiante no encontrado en la base de datos');
+                return;
+            }
+
+            // Verificar si hay computadoras disponibles
+            if (availableComputers.length === 0) {
+                showError('No hay computadoras disponibles');
+                return;
+            }
+
+            // Asignar mesa basada en disponibilidad
+            let assignedTable = null;
+            for (let tableNum = 1; tableNum <= 6; tableNum++) {
+                const table = TABLES[tableNum];
+                const availableInTable = table.computers.filter(comp => 
+                    availableComputers.includes(comp)
+                ).length;
+                
+                if (availableInTable > 0) {
+                    assignedTable = tableNum;
+                    break;
+                }
+            }
+
+            if (assignedTable) {
+                // Encontrar una computadora disponible en la mesa asignada
+                const availableInAssignedTable = TABLES[assignedTable].computers.filter(comp => 
+                    availableComputers.includes(comp)
+                );
+                
+                const assignedComputer = availableInAssignedTable[0];
+                
+                // Registrar la asignación EN MEMORIA TEMPORAL
+                const studentData = studentsDatabase[cleanId];
+                assignedStudents[cleanId] = {
+                    name: studentData.name,
+                    table: assignedTable,
+                    computer: assignedComputer,
+                    timestamp: new Date().toLocaleString(),
+                    fromScan: true // Indicar que vino del escaneo
+                };
+
+                // Agregar estudiante a la mesa
+                TABLES[assignedTable].students.push(cleanId);
+                
+                // Remover computadora de disponibles
+                availableComputers = availableComputers.filter(comp => comp !== assignedComputer);
+
+                // Mostrar asignación en pantalla grande
+                showBigAssignment(studentData.name, assignedTable, false);
+                
+                // También actualizar la interfaz normal después del overlay
+                setTimeout(() => {
+                    showAssignment(studentData.name, assignedTable, false);
+                    updateStats();
+                }, 6500);
+                
+                updateStats(); // Actualizar inmediatamente las estadísticas
+                
+                // Limpiar campo después de un momento
+                setTimeout(() => {
+                    document.getElementById('studentId').value = '';
+                    document.getElementById('studentId').focus();
+                }, 7000);
+            } else {
+                showError('Error en la asignación. Intenta nuevamente.');
+            }
+        }
+
+        function showCameraError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'camera-permission';
+            errorDiv.innerHTML = `
+                <strong>⚠️ Error de Cámara:</strong><br>
+                ${message}<br><br>
+                <strong>Soluciones:</strong><br>
+                • Recarga la página y permite el acceso<br>
+                • Verifica la configuración de permisos<br>
+                • Usa Chrome o Safari para mejor compatibilidad
+            `;
+            
+            const scanSection = document.querySelector('.scan-section');
+            scanSection.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.parentNode.removeChild(errorDiv);
+                }
+            }, 8000);
+        }
+
+        // Detectar si el dispositivo soporta cámara
+        function checkCameraSupport() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                document.getElementById('cameraBtn').style.display = 'none';
+                console.warn('El dispositivo no soporta acceso a cámara');
+            }
+        }
+
+        // Verificar soporte al cargar la página
+        checkCameraSupport();
+    </script>
+</body>
+</html>
